@@ -244,15 +244,15 @@ func handler(rawEvt interface{}) {
 
 		log.Infof("Received message %s from %s (%s): %+v", evt.Info.ID, evt.Info.SourceString(), strings.Join(metaParts, ", "), evt.Message)
 
-		img := evt.Message.GetImageMessage()
-		if img != nil {
-			path, err := ExtractMedia(config.PathStorages, img)
-			if err != nil {
-				log.Errorf("Failed to download image: %v", err)
-			} else {
-				log.Infof("Image downloaded to %s", path)
-			}
-		}
+		// img := evt.Message.GetImageMessage()
+		// if img != nil {
+		// 	path, err := ExtractMedia(config.PathStorages, img)
+		// 	if err != nil {
+		// 		log.Errorf("Failed to download image: %v", err)
+		// 	} else {
+		// 		log.Infof("Image downloaded to %s", path)
+		// 	}
+		// }
 
 		if config.WhatsappAutoReplyMessage != "" &&
 			!isGroupJid(evt.Info.Chat.String()) &&
@@ -261,10 +261,29 @@ func handler(rawEvt interface{}) {
 		}
 
 		if config.WhatsappWebhook != "" &&
-			!strings.Contains(evt.Info.SourceString(), "broadcast") &&
-			!isFromMySelf(evt.Info.SourceString()) {
-			if err := forwardToWebhook(evt); err != nil {
-				logrus.Error("Failed forward to webhook", err)
+			// && !isFromMySelf(evt.Info.SourceString())
+			!strings.Contains(evt.Info.SourceString(), "broadcast") {
+			sourceString := evt.Info.SourceString()
+			messageTxt := evt.Message.ExtendedTextMessage.GetText()
+			isInWhiteList := false
+			for _, wl := range strings.Split(config.WhatsappWebhookWhiteList, ",") {
+				if strings.Contains(sourceString, wl) {
+					isInWhiteList = true
+					break
+				}
+			}
+			isInFilterList := false
+			for _, mf := range strings.Split(config.WhatsappWebhookMessageFilter, ",") {
+				if strings.HasPrefix(messageTxt, mf) {
+					isInFilterList = true
+					break
+				}
+			}
+
+			if isInWhiteList && isInFilterList {
+				if err := forwardToWebhook(evt); err != nil {
+					logrus.Error("Failed forward to webhook", err)
+				}
 			}
 		}
 	case *events.Receipt:
@@ -355,7 +374,8 @@ func forwardToWebhook(evt *events.Message) error {
 		"contact":        evt.Message.GetContactMessage(),
 		"document":       documentMedia,
 		"forwarded":      forwarded,
-		"from":           evt.Info.SourceString(),
+		"sender":         evt.Info.Sender.String(),
+		"chat":           evt.Info.Chat.String(),
 		"image":          imageMedia,
 		"list":           evt.Message.GetListMessage(),
 		"live_location":  evt.Message.GetLiveLocationMessage(),
@@ -370,41 +390,41 @@ func forwardToWebhook(evt *events.Message) error {
 		"view_once":      evt.Message.GetViewOnceMessage(),
 	}
 
-	if imageMedia != nil {
-		path, err := ExtractMedia(config.PathMedia, imageMedia)
-		if err != nil {
-			return pkgError.WebhookError(fmt.Sprintf("Failed to download image: %v", err))
-		}
-		body["image"] = path
-	}
-	if stickerMedia != nil {
-		path, err := ExtractMedia(config.PathMedia, stickerMedia)
-		if err != nil {
-			return pkgError.WebhookError(fmt.Sprintf("Failed to download sticker: %v", err))
-		}
-		body["sticker"] = path
-	}
-	if videoMedia != nil {
-		path, err := ExtractMedia(config.PathMedia, videoMedia)
-		if err != nil {
-			return pkgError.WebhookError(fmt.Sprintf("Failed to download video: %v", err))
-		}
-		body["video"] = path
-	}
-	if audioMedia != nil {
-		path, err := ExtractMedia(config.PathMedia, audioMedia)
-		if err != nil {
-			return pkgError.WebhookError(fmt.Sprintf("Failed to download audio: %v", err))
-		}
-		body["audio"] = path
-	}
-	if documentMedia != nil {
-		path, err := ExtractMedia(config.PathMedia, documentMedia)
-		if err != nil {
-			return pkgError.WebhookError(fmt.Sprintf("Failed to download document: %v", err))
-		}
-		body["document"] = path
-	}
+	// if imageMedia != nil {
+	// 	path, err := ExtractMedia(config.PathMedia, imageMedia)
+	// 	if err != nil {
+	// 		return pkgError.WebhookError(fmt.Sprintf("Failed to download image: %v", err))
+	// 	}
+	// 	body["image"] = path
+	// }
+	// if stickerMedia != nil {
+	// 	path, err := ExtractMedia(config.PathMedia, stickerMedia)
+	// 	if err != nil {
+	// 		return pkgError.WebhookError(fmt.Sprintf("Failed to download sticker: %v", err))
+	// 	}
+	// 	body["sticker"] = path
+	// }
+	// if videoMedia != nil {
+	// 	path, err := ExtractMedia(config.PathMedia, videoMedia)
+	// 	if err != nil {
+	// 		return pkgError.WebhookError(fmt.Sprintf("Failed to download video: %v", err))
+	// 	}
+	// 	body["video"] = path
+	// }
+	// if audioMedia != nil {
+	// 	path, err := ExtractMedia(config.PathMedia, audioMedia)
+	// 	if err != nil {
+	// 		return pkgError.WebhookError(fmt.Sprintf("Failed to download audio: %v", err))
+	// 	}
+	// 	body["audio"] = path
+	// }
+	// if documentMedia != nil {
+	// 	path, err := ExtractMedia(config.PathMedia, documentMedia)
+	// 	if err != nil {
+	// 		return pkgError.WebhookError(fmt.Sprintf("Failed to download document: %v", err))
+	// 	}
+	// 	body["document"] = path
+	// }
 
 	postBody, err := json.Marshal(body)
 	if err != nil {

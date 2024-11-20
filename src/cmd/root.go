@@ -50,6 +50,8 @@ func init() {
 	rootCmd.PersistentFlags().StringVarP(&config.WhatsappWebhook, "webhook", "w", config.WhatsappWebhook, `forward event to webhook --webhook <string> | example: --webhook="https://yourcallback.com/callback"`)
 	rootCmd.PersistentFlags().StringVarP(&config.WhatsappWebhookSecret, "webhook-secret", "", config.WhatsappWebhookSecret, `secure webhook request --webhook-secret <string> | example: --webhook-secret="super-secret-key"`)
 	rootCmd.PersistentFlags().BoolVarP(&config.WhatsappAccountValidation, "account-validation", "", config.WhatsappAccountValidation, `enable or disable account validation --account-validation <true/false> | example: --account-validation=true`)
+	rootCmd.PersistentFlags().StringVarP(&config.WhatsappWebhookWhiteList, "webhook-white-list", "", config.WhatsappWebhookWhiteList, `filter messages for webhook by user id/group id --webhook-white-list <string> | example: --webhook-white-list="123456789,987654321,etc..."`)
+	rootCmd.PersistentFlags().StringVarP(&config.WhatsappWebhookMessageFilter, "webhook-message-filter", "", config.WhatsappWebhookMessageFilter, `filter messages for webhook by word --webhook-message-filter <string> | example: --webhook-message-filter="word1,word2,etc..."`)
 }
 
 func runRest(_ *cobra.Command, _ []string) {

@@ -19,13 +19,15 @@ var (
 
 	DBName = "whatsapp.db"
 
-	WhatsappAutoReplyMessage    string
-	WhatsappWebhook             string
-	WhatsappWebhookSecret             = "secret"
-	WhatsappLogLevel                  = "ERROR"
-	WhatsappSettingMaxFileSize  int64 = 50000000  // 50MB
-	WhatsappSettingMaxVideoSize int64 = 100000000 // 100MB
-	WhatsappTypeUser                  = "@s.whatsapp.net"
-	WhatsappTypeGroup                 = "@g.us"
-	WhatsappAccountValidation         = true
+	WhatsappAutoReplyMessage     string
+	WhatsappWebhook              string
+	WhatsappWebhookSecret        = "secret"
+	WhatsappWebhookWhiteList     string
+	WhatsappWebhookMessageFilter string
+	WhatsappLogLevel                   = "ERROR"
+	WhatsappSettingMaxFileSize   int64 = 50000000  // 50MB
+	WhatsappSettingMaxVideoSize  int64 = 100000000 // 100MB
+	WhatsappTypeUser                   = "@s.whatsapp.net"
+	WhatsappTypeGroup                  = "@g.us"
+	WhatsappAccountValidation          = true
 )
